@@ -5,9 +5,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from stellargraph import StellarGraph
-print('before import')
 from dyn_graph_emb.ts_model import DynConnectomeEmbed
-print('after import')
 
 
 def main():
@@ -44,10 +42,8 @@ def main():
     if not os.path.exists(label_path):
         raise FileExistsError("label path does not exist")
 
-    print(47)
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
-        print(50)
 
     with open(os.path.join(save_dir, 'params.txt'), "w") as f:
         for key, value in opt.items():
