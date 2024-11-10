@@ -25,20 +25,8 @@ setup(name=package_name,
       packages=find_packages('src'),
       py_modules=[package_name],
       install_requires=[
-          'numpy'
       ],
       extras_require={
-          'dev': [
-              'ipykernel',
-              'mypy',
-              'autopep8',
-              'pytest',
-              'pytest-cov'
-          ],
-          'test': [
-              'pytest',
-              'pytest-cov'
-          ]
       },
       license='Private',
       zip_safe=False,
