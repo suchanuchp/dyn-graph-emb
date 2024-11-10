@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from nilearn.input_data import NiftiLabelsMasker
 from nilearn.connectome import ConnectivityMeasure
+# nohup python -u src/dyn_graph_emb/preprocess/construct_dyn_connectome.py -d data/ABIDE_pcp/cpac/nofilt_noglobal -s data/prep_w20_s5 > log_prep_w20_s5.txt &
 
 
 def dynamic_connectome_from_timeseries(timeseries, window_size=20, step_size=5):
