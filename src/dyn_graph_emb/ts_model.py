@@ -47,7 +47,8 @@ class DynConnectomeEmbed():
                 seed=0,
                 alpha=self.alpha,
             )
-            # walks = [[str(word) for word in walk] for walk in walks]
+            len_walks = np.mean([len(walk) for walk in cross_walks])
+            print(f'average walk length: {len_walks}')
             documents.append([TaggedDocument(doc, [gi]) for doc in cross_walks])
 
         documents = sum(documents, [])
