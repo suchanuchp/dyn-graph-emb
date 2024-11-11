@@ -1,5 +1,5 @@
-import json
 import os
+from tqdm import tqdm
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 import numpy as np
 
@@ -30,8 +30,9 @@ class DynConnectomeEmbed():
         :param graphs: dictionary of key- time, value- nx.Graph
         :return: list of documents
         '''
+        print("running random walk...")
         documents = []
-        for gi, graph in enumerate(self.graphs):
+        for gi, graph in tqdm(enumerate(self.graphs)):
             if self.alpha > 0:
                 structural_graph = get_structural_sim_network(graph, nodes_st=self.nodes_st, k=self.k,
                                                               data_path='')  # TODO: change data path
