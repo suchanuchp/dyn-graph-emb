@@ -23,6 +23,7 @@ class DynConnectomeEmbed():
         self.nodes_st = None
         self.config = config
         self.save_dir = config["savedir"]
+        self.model = None
 
     def get_random_walk_sequences(self):
         '''
@@ -61,6 +62,7 @@ class DynConnectomeEmbed():
         model.train(documents, total_examples=model.corpus_count, epochs=model.epochs)
         save_path = os.path.join(self.save_dir, 'model.model')
         model.save(save_path)
+        self.model = model
         np.savetxt(os.path.join(self.save_dir, 'labels.txt'), self.labels)
         print("Model Saved")
 
@@ -70,8 +72,7 @@ class DynConnectomeEmbed():
         :return: temporal graph vectors for each time step.
         numpy array of shape (number of time steps, graph vector dimension size)
         '''
-        model_path = f"trained_models/{self.dataset_name}.model"
-        model = Doc2Vec.load(model_path)
-        graph_vecs = model.dv
-        graph_vecs = graph_vecs[np.argsort([model.docvecs.index_to_doctag(i) for i in range(0, graph_vecs.shape[0])])]
-        return graph_vecs
+        if self.model is None:
+            raise Exception
+
+        return self.model.dv[np.arange(len(self.labels))]
