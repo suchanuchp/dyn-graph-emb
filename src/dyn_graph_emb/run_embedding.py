@@ -6,11 +6,11 @@ from tqdm import tqdm
 
 from stellargraph import StellarGraph
 from dyn_graph_emb.ts_model import DynConnectomeEmbed
+from dyn_graph_emb.evaluation import train_multiclass
+# python -u src/dyn_graph_emb/run_embedding.py --datadir data/prep_w50_s8_aal_batch2 --savedir data/emb_w50_s8_aal_batch2_l10_w4 -r 10 --maximum_walk_length 10 --context_window_size 4 --num_nodes 116
 
 
 def main():
-
-    # Check if filename is provided
     parser = argparse.ArgumentParser()
     parser.add_argument('-p', '--datadir', type=str, default='data/prep_test')
     parser.add_argument('-s', '--savedir', type=str, default='data/test')
@@ -85,16 +85,8 @@ def main():
                                config=opt)
     walk_sequences = model.get_random_walk_sequences()
     model.run_doc2vec(walk_sequences)
-
-    # path = r"data/facebook/facebook-wall.txt"
-    # df = pd.read_table(path, sep='\t', header=None)
-    # df.columns = ['source', 'target', 'time']
-    # temporal_g = TemporalGraph(data=df, time_granularity='months')
-    # graphs = temporal_g.get_temporal_graphs(min_degree=10)
-    # model = TdGraphEmbed(dataset_name="facebook")
-    # documents = model.get_documents_from_graph(graphs)
-    # model.run_doc2vec(documents)
-    # graph_vectors = model.get_embeddings()
+    emb = model.get_embeddings()
+    train_multiclass(emb, labels)
 
 
 if __name__ == "__main__":
