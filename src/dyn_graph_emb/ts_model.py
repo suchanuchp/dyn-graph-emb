@@ -7,9 +7,8 @@ from dyn_graph_emb.random_walk import TemporalStructuralRandomWalk
 from dyn_graph_emb.utils import get_structural_sim_network
 
 
-class DynConnectomeEmbed():
+class DynConnectomeEmbed:
     def __init__(self, graphs, labels, config):
-        # INPUT: directories of dynamic graph files
         self.num_walks = config["random_walks_per_node"]
         self.embedding_dim = config["embedding_dimension"]
         self.window_size = config["context_window_size"]
@@ -17,6 +16,7 @@ class DynConnectomeEmbed():
         self.k = config["k"]
         self.alpha = config["alpha"]
         self.num_walks = config["random_walks_per_node"]
+        self.epochs = config["epochs"]
         self.graphs = graphs
         self.labels = labels
         self.n_graphs = len(self.graphs)
@@ -57,7 +57,7 @@ class DynConnectomeEmbed():
         return documents
 
     def run_doc2vec(self, documents):
-        model = Doc2Vec(vector_size=self.embedding_dim, window=self.window_size)  # epochs=self.epochs)
+        model = Doc2Vec(vector_size=self.embedding_dim, window=self.window_size, epochs=self.epochs)
         model.build_vocab(documents)
         model.train(documents, total_examples=model.corpus_count, epochs=model.epochs)
         save_path = os.path.join(self.save_dir, 'model.model')

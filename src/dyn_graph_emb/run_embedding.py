@@ -19,6 +19,7 @@ def main():
     parser.add_argument('--label_path', type=str, default='data/ABIDE_pcp/Phenotypic_V1_0b_preprocessed1.csv')
     parser.add_argument('-l', '--maximum_walk_length', type=int, default=20)
     parser.add_argument('-w', '--context_window_size', type=int, default=10)
+    parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('-k', '--k', type=int, default=-1)
     parser.add_argument('-z', '--save_embeddings', type=int, default=0)
     parser.add_argument('--alpha', type=float, default=0.)
@@ -80,8 +81,9 @@ def main():
         label = 0 if group == 2 else 1  # 0: control, 1: autism
         labels.append(label)
 
+    labels = np.array(labels)
     model = DynConnectomeEmbed(graphs=graphs,
-                               labels=np.array(labels),
+                               labels=labels,
                                config=opt)
     walk_sequences = model.get_random_walk_sequences()
     model.run_doc2vec(walk_sequences)
