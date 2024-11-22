@@ -3,10 +3,12 @@ import argparse
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-
+import networkx as nx
 from stellargraph import StellarGraph
+
 from dyn_graph_emb.ts_model import DynConnectomeEmbed
-from dyn_graph_emb.evaluation import train_multiclass
+from dyn_graph_emb.evaluation import train_multiclass, train_multiclass_v2
+from dyn_graph_emb.tdgraphembed import TdGraphEmbed
 # python -u src/dyn_graph_emb/run_embedding.py --datadir data/prep_w50_s8_aal_batch2 --savedir data/emb_w50_s8_aal_batch2_l10_w4 -r 10 --maximum_walk_length 10 --context_window_size 4 --num_nodes 116
 
 
@@ -26,6 +28,7 @@ def main():
     parser.add_argument('--num_nodes', type=int, default=200)
     parser.add_argument('--start', type=int, default=0)
     parser.add_argument('--end', type=int, default=-1)
+    parser.add_argument('--run_baseline', type=int, default=1)
 
     args = parser.parse_args()
     opt = vars(args)
@@ -58,9 +61,27 @@ def main():
     filenames = sorted([filename for filename in filenames if filename.endswith('.csv')])
     end = end if end != -1 else len(filenames)
 
+    df_info = df_info[(df_info['AGE_AT_SCAN'] >= 10) & (df_info['AGE_AT_SCAN'] < 15)]
+    poi_files = df_info.FILE_ID
+    filtered_filenames = filenames[start:end]
+    for filename in filenames[start:end]:
+        file_id = filename[:filename.find('_func_preproc.csv')]
+        if file_id in poi_files:
+            filtered_filenames.append(filename)
+
+    print(f'------- filtered files: {len(filtered_filenames)}')
+
+    if opt['run_baseline']:
+        run_tdgraphembed(filtered_filenames, opt)
+
     graphs = []
     labels = []
-    for filename in tqdm(filenames[start:end]):
+    for filename in tqdm(filtered_filenames):
+        file_id = filename[:filename.find('_func_preproc.csv')]
+        group = df_info[df_info.FILE_ID == file_id].iloc[0].DX_GROUP
+        label = 0 if group == 2 else 1  # 0: control, 1: autism
+        labels.append(label)
+
         filepath = os.path.join(data_dir, filename)
         df_graph = pd.read_csv(filepath, index_col=False, names=['src', 'dst', 't'])
         df_graph.src = df_graph.src.astype(str)
@@ -89,6 +110,66 @@ def main():
     model.run_doc2vec(walk_sequences)
     emb = model.get_embeddings()
     train_multiclass(emb, labels)
+
+
+def run_tdgraphembed(filtered_filenames, opt):
+    data_dir = opt['datadir']
+    label_path = opt['label_path']
+    n_nodes = opt['num_nodes']
+    start = opt['start']
+    end = opt['end']
+    nodes = np.arange(n_nodes)
+    nodes_st = [str(node) for node in nodes]
+    df_info = pd.read_csv(label_path)
+
+    graphs = []
+    labels = []
+    max_ts = []
+
+    for filename in tqdm(filtered_filenames):
+        filepath = os.path.join(data_dir, filename)
+        file_id = filename[:filename.find('_func_preproc.csv')]
+        group = df_info[df_info.FILE_ID == file_id].iloc[0].DX_GROUP
+        label = 0 if group == 2 else 1  # 0: control, 1: autism
+        labels.append(label)
+        df_graph = pd.read_csv(filepath, index_col=False, names=['src', 'dst', 't'])
+        df_graph.src = df_graph.src.astype(str)
+        df_graph.dst = df_graph.dst.astype(str)
+        g, max_t = get_temporal_graphs_dict(df_graph, nodes_st)
+        graphs.append(g)
+        max_ts.append(max_t)
+
+    labels = np.array(labels)
+    model = TdGraphEmbed(graphs=graphs,
+                         labels=labels,
+                         config=opt)
+    walk_sequences = model.get_documents_from_graph()
+    model.run_doc2vec(walk_sequences)
+    emb = aggregate_graph_snapshots(model.model, len(graphs), max_ts)
+    print('----logistic----')
+    train_multiclass(emb, labels)
+    print('----svm----')
+    train_multiclass_v2(emb, labels)
+
+
+def aggregate_graph_snapshots(model, n_graphs, max_ts):
+    aggregated_emb = []
+    for max_t, gi in zip(max_ts, np.arange(n_graphs)):
+        emb = np.mean([model.dv[str((gi, ti))] for ti in range(1, max_t+1)], axis=0)
+        print(emb.shape)
+        aggregated_emb.append(emb)
+    return np.array(aggregated_emb)
+
+
+def get_temporal_graphs_dict(df, nodes_st):
+    G = {}
+    for t, time_group in df.groupby(df.t):
+        g = nx.from_pandas_edgelist(time_group, source='src', target='dst',
+                                    create_using=nx.Graph())
+        g.add_nodes_from(nodes_st)
+        G[t] = g
+
+    return G, np.max(df.t)
 
 
 if __name__ == "__main__":
