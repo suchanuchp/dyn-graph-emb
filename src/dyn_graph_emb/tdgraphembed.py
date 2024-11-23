@@ -33,7 +33,7 @@ class TdGraphEmbed:
         for gi, graphs_dict in tqdm(enumerate(self.graphs)):
             for t in graphs_dict.keys():
                 node2vec = Node2Vec(graphs_dict[t], walk_length=self.walk_length, num_walks=self.num_walks,
-                                    p=self.p, q=self.q, quiet=True)#, weight_key='weight')
+                                    p=self.p, q=self.q, quiet=True, workers=5)#, weight_key='weight')
                 walks = node2vec.walks
                 # walks = [[str(word) for word in walk] for walk in walks]
                 len_walks = np.mean([len(walk) for walk in walks])
@@ -44,7 +44,7 @@ class TdGraphEmbed:
         return documents
 
     def run_doc2vec(self, documents):
-        model = Doc2Vec(vector_size=self.embedding_dim, window=self.window_size)# alpha=self.alpha, , min_alpha=self.alpha)
+        model = Doc2Vec(vector_size=self.embedding_dim, window=self.window_size, workers=5)# alpha=self.alpha, , min_alpha=self.alpha)
         model.build_vocab(documents)
         print('---- training doc2vec ----')
         model.train(documents, total_examples=model.corpus_count, epochs=model.epochs)
