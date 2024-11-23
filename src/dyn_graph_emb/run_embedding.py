@@ -27,7 +27,7 @@ def main():
     parser.add_argument('--alpha', type=float, default=0.)
     parser.add_argument('--num_nodes', type=int, default=200)
     parser.add_argument('--start', type=int, default=0)
-    parser.add_argument('--end', type=int, default=-1)
+    parser.add_argument('--end', type=int, default=10)
     parser.add_argument('--run_baseline', type=int, default=1)
 
     args = parser.parse_args()
@@ -59,12 +59,12 @@ def main():
     nodes = [str(node) for node in nodes]
     filenames = os.listdir(data_dir)
     filenames = sorted([filename for filename in filenames if filename.endswith('.csv')])
-    end = end if end != -1 else len(filenames)
+    # end = end if end != -1 else len(filenames)
 
-    df_info = df_info[(df_info['AGE_AT_SCAN'] >= 10) & (df_info['AGE_AT_SCAN'] < 15)]
+    df_info = df_info[(df_info['AGE_AT_SCAN'] >= start) & (df_info['AGE_AT_SCAN'] < end)]
     poi_files = df_info.FILE_ID.tolist()
     filtered_filenames = []
-    for filename in filenames[start:end]:
+    for filename in filenames:
         file_id = filename[:filename.find('_func_preproc.csv')]
         if file_id in poi_files:
             filtered_filenames.append(filename)
@@ -116,8 +116,6 @@ def run_tdgraphembed(filtered_filenames, opt):
     data_dir = opt['datadir']
     label_path = opt['label_path']
     n_nodes = opt['num_nodes']
-    start = opt['start']
-    end = opt['end']
     nodes = np.arange(n_nodes)
     nodes_st = [str(node) for node in nodes]
     df_info = pd.read_csv(label_path)
