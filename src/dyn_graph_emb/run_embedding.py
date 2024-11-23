@@ -62,8 +62,8 @@ def main():
     end = end if end != -1 else len(filenames)
 
     df_info = df_info[(df_info['AGE_AT_SCAN'] >= 10) & (df_info['AGE_AT_SCAN'] < 15)]
-    poi_files = df_info.FILE_ID
-    filtered_filenames = filenames[start:end]
+    poi_files = df_info.FILE_ID.tolist()
+    filtered_filenames = []
     for filename in filenames[start:end]:
         file_id = filename[:filename.find('_func_preproc.csv')]
         if file_id in poi_files:
