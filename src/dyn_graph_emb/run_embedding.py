@@ -97,11 +97,6 @@ def main():
 
         graphs.append(dynamic_graph)
 
-        file_id = filename[:filename.find('_func_preproc.csv')]
-        group = df_info[df_info.FILE_ID == file_id].iloc[0].DX_GROUP
-        label = 0 if group == 2 else 1  # 0: control, 1: autism
-        labels.append(label)
-
     labels = np.array(labels)
     model = DynConnectomeEmbed(graphs=graphs,
                                labels=labels,
