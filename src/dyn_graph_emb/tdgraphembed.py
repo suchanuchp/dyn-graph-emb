@@ -33,7 +33,7 @@ class TdGraphEmbed:
         for gi, graphs_dict in tqdm(enumerate(self.graphs)):
             for t in graphs_dict.keys():
                 node2vec = Node2Vec(graphs_dict[t], walk_length=self.walk_length, num_walks=self.num_walks,
-                                    p=self.p, q=self.q)#, weight_key='weight')
+                                    p=self.p, q=self.q, quiet=True)#, weight_key='weight')
                 walks = node2vec.walks
                 # walks = [[str(word) for word in walk] for walk in walks]
                 len_walks = np.mean([len(walk) for walk in walks])
