@@ -29,6 +29,8 @@ def main():
     parser.add_argument('--start', type=int, default=0)
     parser.add_argument('--end', type=int, default=10)
     parser.add_argument('--run_baseline', type=int, default=1)
+    parser.add_argument('--workers', type=int, default=1)
+
 
     args = parser.parse_args()
     opt = vars(args)
@@ -149,7 +151,6 @@ def aggregate_graph_snapshots(model, n_graphs, max_ts):
     aggregated_emb = []
     for max_t, gi in zip(max_ts, np.arange(n_graphs)):
         emb = np.mean([model.dv[str((gi, ti))] for ti in range(1, max_t+1)], axis=0)
-        print(emb.shape)
         aggregated_emb.append(emb)
     return np.array(aggregated_emb)
 

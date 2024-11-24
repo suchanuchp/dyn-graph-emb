@@ -24,6 +24,7 @@ class DynConnectomeEmbed:
         self.config = config
         self.save_dir = config["savedir"]
         self.model = None
+        self.workers = config["workers"]
 
     def get_random_walk_sequences(self):
         '''
@@ -57,7 +58,7 @@ class DynConnectomeEmbed:
         return documents
 
     def run_doc2vec(self, documents):
-        model = Doc2Vec(vector_size=self.embedding_dim, window=self.window_size, epochs=self.epochs)
+        model = Doc2Vec(vector_size=self.embedding_dim, window=self.window_size, epochs=self.epochs, workers=self.workers)
         model.build_vocab(documents)
         model.train(documents, total_examples=model.corpus_count, epochs=model.epochs)
         save_path = os.path.join(self.save_dir, 'model.model')
