@@ -25,6 +25,7 @@ class DynConnectomeEmbed:
         self.save_dir = config["savedir"]
         self.model = None
         self.workers = config["workers"]
+        self.include_same_timestep_neighbors = config["include_same_timestep_neighbors"]
 
     def get_random_walk_sequences(self):
         '''
@@ -48,6 +49,7 @@ class DynConnectomeEmbed:
                 walk_bias="exponential",
                 seed=0,
                 alpha=self.alpha,
+                include_same_timestep_neighbors=self.include_same_timestep_neighbors,
             )
             len_walks = np.mean([len(walk) for walk in cross_walks])
             print(f'average walk length: {len_walks}')

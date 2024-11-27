@@ -30,6 +30,7 @@ def main():
     parser.add_argument('--end', type=int, default=10)
     parser.add_argument('--run_baseline', type=int, default=1)
     parser.add_argument('--workers', type=int, default=1)
+    parser.add_argument('--include_same_timestep_neighbors', type=int, default=0)
 
 
     args = parser.parse_args()
@@ -106,7 +107,10 @@ def main():
     walk_sequences = model.get_random_walk_sequences()
     model.run_doc2vec(walk_sequences)
     emb = model.get_embeddings()
+    print('------ts model logistic---------')
     train_multiclass(emb, labels)
+    print('------ts model svm---------')
+    train_multiclass_v2(emb, labels)
 
 
 def run_tdgraphembed(filtered_filenames, opt):
@@ -141,9 +145,9 @@ def run_tdgraphembed(filtered_filenames, opt):
     walk_sequences = model.get_documents_from_graph()
     model.run_doc2vec(walk_sequences)
     emb = aggregate_graph_snapshots(model.model, len(graphs), max_ts)
-    print('----logistic----')
+    print('----logistic tdgraphembed----')
     train_multiclass(emb, labels)
-    print('----svm----')
+    print('----svm tdgraphembed----')
     train_multiclass_v2(emb, labels)
 
 
