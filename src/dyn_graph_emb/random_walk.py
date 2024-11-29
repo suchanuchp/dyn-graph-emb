@@ -1223,6 +1223,10 @@ class TemporalStructuralRandomWalk(GraphWalk):
                 node, time = result
                 walk.append(node)
                 tts.append(time)
+                if tts[-2] == time:
+                    print('---same time walk---')
+                else:
+                    print('ooooooo jump ooooooo')
             else:
                 break
 
