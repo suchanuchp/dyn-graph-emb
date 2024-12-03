@@ -9,7 +9,8 @@ from stellargraph import StellarGraph
 from dyn_graph_emb.ts_model import DynConnectomeEmbed
 from dyn_graph_emb.evaluation import train_multiclass, train_multiclass_v2
 from dyn_graph_emb.tdgraphembed import TdGraphEmbed
-# nohup python -u src/dyn_graph_emb/run_embedding.py --datadir data/prep_w50_s5_aal_all --savedir output/emb_w50_s5_aal_a1520_r10_l20_st1 -r 10 --maximum_walk_length 20 --context_window_size 5 --num_nodes 116 --include_same_timestep_neighbors 1 --run_baseline 0 --start 15 --end 20 > logs/nlog_emb_w50_s5_aal_a1520_r10_l20_st0.txt
+from dyn_graph_emb.utils import save_list_to_file
+# nohup python -u src/dyn_graph_emb/run_embedding.py --datadir data/prep_w50_s5_aal_all --savedir output/tdgraphembed_a1520_r10_l10_w5 -r 10 --maximum_walk_length 10 --context_window_size 5 --num_nodes 116 --include_same_timestep_neighbors 1 --run_baseline 1 --start 15 --end 20 > logs/tdgraphembed_a1520_r10_l10_w5.txt
 
 def main():
     parser = argparse.ArgumentParser()
@@ -28,6 +29,7 @@ def main():
     parser.add_argument('--start', type=int, default=0)
     parser.add_argument('--end', type=int, default=10)
     parser.add_argument('--run_baseline', type=int, default=1)
+    parser.add_argument('--run_tswalk', type=int, default=1)
     parser.add_argument('--workers', type=int, default=1)
     parser.add_argument('--include_same_timestep_neighbors', type=int, default=0)
 
@@ -66,24 +68,36 @@ def main():
     df_info = df_info[(df_info['AGE_AT_SCAN'] >= start) & (df_info['AGE_AT_SCAN'] < end)]
     poi_files = df_info.FILE_ID.tolist()
     filtered_filenames = []
+    labels = []
+    graph_indices = []
     for filename in filenames:
         file_id = filename[:filename.find('_func_preproc.csv')]
         if file_id in poi_files:
             filtered_filenames.append(filename)
+            group = df_info[df_info.FILE_ID == file_id].iloc[0].DX_GROUP
+            label = 0 if group == 2 else 1  # 0: control, 1: autism
+            labels.append(label)
+            graph_indices.append(file_id)
 
+    labels = np.array(labels)
     print(f'------- filtered files: {len(filtered_filenames)}')
+    save_list_to_file(graph_indices, os.path.join(save_dir, 'graph_indices.txt'))
+    np.savetxt(os.path.join(save_dir, 'labels.txt'), labels)
 
     if opt['run_baseline']:
-        run_tdgraphembed(filtered_filenames, opt)
+        run_tdgraphembed(filtered_filenames, labels, opt)
 
+    if opt['run_tswalk']:
+        run_tswalk(filtered_filenames, labels, opt)
+
+
+def run_tswalk(filtered_filenames, labels, opt):
+    data_dir = opt['datadir']
+    n_nodes = opt['num_nodes']
+    nodes = np.arange(n_nodes)
+    nodes = [str(node) for node in nodes]
     graphs = []
-    labels = []
     for filename in tqdm(filtered_filenames):
-        file_id = filename[:filename.find('_func_preproc.csv')]
-        group = df_info[df_info.FILE_ID == file_id].iloc[0].DX_GROUP
-        label = 0 if group == 2 else 1  # 0: control, 1: autism
-        labels.append(label)
-
         filepath = os.path.join(data_dir, filename)
         df_graph = pd.read_csv(filepath, index_col=False, names=['src', 'dst', 't'])
         df_graph.src = df_graph.src.astype(str)
@@ -99,7 +113,6 @@ def main():
 
         graphs.append(dynamic_graph)
 
-    labels = np.array(labels)
     model = DynConnectomeEmbed(graphs=graphs,
                                labels=labels,
                                config=opt)
@@ -112,52 +125,33 @@ def main():
     train_multiclass_v2(emb, labels)
 
 
-def run_tdgraphembed(filtered_filenames, opt):
+def run_tdgraphembed(filtered_filenames, labels, opt):
     data_dir = opt['datadir']
-    label_path = opt['label_path']
     n_nodes = opt['num_nodes']
     nodes = np.arange(n_nodes)
     nodes_st = [str(node) for node in nodes]
-    df_info = pd.read_csv(label_path)
-
     graphs = []
-    labels = []
     max_ts = []
-    graph_indices = []
 
     for filename in tqdm(filtered_filenames):
         filepath = os.path.join(data_dir, filename)
-        file_id = filename[:filename.find('_func_preproc.csv')]
-        group = df_info[df_info.FILE_ID == file_id].iloc[0].DX_GROUP
-        label = 0 if group == 2 else 1  # 0: control, 1: autism
-        labels.append(label)
         df_graph = pd.read_csv(filepath, index_col=False, names=['src', 'dst', 't'])
         df_graph.src = df_graph.src.astype(str)
         df_graph.dst = df_graph.dst.astype(str)
         g, max_t = get_temporal_graphs_dict(df_graph, nodes_st)
         graphs.append(g)
         max_ts.append(max_t)
-        graph_indices.append(file_id)
 
-    labels = np.array(labels)
     model = TdGraphEmbed(graphs=graphs,
                          labels=labels,
                          config=opt)
-    walk_sequences = model.get_documents_from_graph()
+    walk_sequences, max_ts = model.get_documents_from_graph()
     model.run_doc2vec(walk_sequences)
-    emb = aggregate_graph_snapshots(model.model, len(graphs), max_ts)
+    emb = model.aggregate_embedding_snapshots(max_ts)
     print('----logistic tdgraphembed----')
     train_multiclass(emb, labels)
     print('----svm tdgraphembed----')
     train_multiclass_v2(emb, labels)
-
-
-def aggregate_graph_snapshots(model, n_graphs, max_ts):
-    aggregated_emb = []
-    for max_t, gi in zip(max_ts, np.arange(n_graphs)):
-        emb = np.mean([model.dv[str((gi, ti))] for ti in range(1, max_t+1)], axis=0)
-        aggregated_emb.append(emb)
-    return np.array(aggregated_emb)
 
 
 def get_temporal_graphs_dict(df, nodes_st):

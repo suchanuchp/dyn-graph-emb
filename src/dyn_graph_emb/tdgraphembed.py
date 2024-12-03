@@ -8,7 +8,7 @@ from dyn_graph_emb.utils import save_list_to_file
 
 
 class TdGraphEmbed:
-    def __init__(self, graphs, labels, graph_indices, config):
+    def __init__(self, graphs, labels, config):
         self.num_walks = config["random_walks_per_node"]
         self.embedding_dim = config["embedding_dimension"]
         self.window_size = config["context_window_size"]
@@ -18,7 +18,6 @@ class TdGraphEmbed:
         self.q = 0.5
         self.graphs = graphs
         self.labels = labels
-        self.graph_indices = graph_indices
         self.n_graphs = len(self.graphs)
         self.config = config
         self.save_dir = config["savedir"]
@@ -34,7 +33,9 @@ class TdGraphEmbed:
                 '''
         print("running random walk...")
         documents = []
+        max_ts = []
         for gi, graphs_dict in tqdm(enumerate(self.graphs)):
+            max_t = 0
             for t in graphs_dict.keys():
                 node2vec = Node2Vec(graphs_dict[t], walk_length=self.walk_length, num_walks=self.num_walks,
                                     p=self.p, q=self.q, quiet=True, workers=self.workers)#, weight_key='weight')
@@ -43,11 +44,13 @@ class TdGraphEmbed:
                 len_walks = np.mean([len(walk) for walk in walks])
                 print(f'average walk length: {len_walks}')
                 documents.append([TaggedDocument(doc, [str((gi, t))]) for doc in walks])
+                max_t = t if t > max_t else max_t
+            max_ts.append(max_t)
 
         documents = sum(documents, [])
         return documents
 
-    def run_doc2vec(self, documents):
+    def run_doc2vec(self, documents, max_ts):
         model = Doc2Vec(vector_size=self.embedding_dim, window=self.window_size, workers=self.workers)# alpha=self.alpha, , min_alpha=self.alpha)
         model.build_vocab(documents)
         print('---- training doc2vec ----')
@@ -55,18 +58,14 @@ class TdGraphEmbed:
         save_path = os.path.join(self.save_dir, 'tdgraphembed.model')
         self.model = model
         model.save(save_path)
-        np.savetxt(os.path.join(self.save_dir, 'labels.txt'), self.labels)
-        save_list_to_file(self.graph_indices, os.path.join(self.save_dir, 'graph_indices.txt'))
         print("Model Saved")
+        emb = self.aggregate_embedding_snapshots(max_ts)
+        np.savetxt(os.path.join(self.save_dir, 'tdgraphembed.txt'), emb)
 
-    # def get_embeddings(self):
-    #     '''
-    #
-    #     :return: temporal graph vectors for each time step.
-    #     numpy array of shape (number of time steps, graph vector dimension size)
-    #     '''
-    #     model_path = f"trained_models/{self.dataset_name}.model"
-    #     model = Doc2Vec.load(model_path)
-    #     graph_vecs = model.docvecs.doctag_syn0
-    #     graph_vecs = graph_vecs[np.argsort([model.docvecs.index_to_doctag(i) for i in range(0, graph_vecs.shape[0])])]
-    #     return graph_vecs
+    def aggregate_embedding_snapshots(self, max_ts):
+        n_graphs = len(self.labels)
+        aggregated_emb = []
+        for max_t, gi in zip(max_ts, np.arange(n_graphs)):
+            emb = np.mean([self.model.dv[str((gi, ti))] for ti in range(1, max_t + 1)], axis=0)
+            aggregated_emb.append(emb)
+        return np.array(aggregated_emb)

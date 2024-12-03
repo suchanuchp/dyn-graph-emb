@@ -66,8 +66,9 @@ class DynConnectomeEmbed:
         save_path = os.path.join(self.save_dir, 'model.model')
         model.save(save_path)
         self.model = model
-        np.savetxt(os.path.join(self.save_dir, 'labels.txt'), self.labels)
         print("Model Saved")
+        emb = self.get_embeddings()
+        np.savetxt(os.path.join(self.save_dir, 'tdgraphembed.txt'), emb)
 
     def get_embeddings(self):
         '''
@@ -78,4 +79,4 @@ class DynConnectomeEmbed:
         if self.model is None:
             raise Exception
 
-        return self.model.dv[np.arange(len(self.labels))]
+        return np.array([self.model.dv.get_vector(i) for i in np.arange(len(self.labels))])
