@@ -32,7 +32,7 @@ def pretty_print_dict(d):
     print()
 
 
-def train_multiclass_v2(xs, ys, n_splits=5, to_print=True, random_state=0):
+def train_multiclass_v2(xs, ys, n_splits=5, to_print=True, random_state=0, kernel='linear'):
     is_binary = (len(ys.shape) == 1) or (ys.shape[1] == 1)
     if not is_binary:
         int_labels = np.argmax(ys, axis=1)
@@ -51,7 +51,7 @@ def train_multiclass_v2(xs, ys, n_splits=5, to_print=True, random_state=0):
         scaler = StandardScaler()
         X_train_scaled = scaler.fit_transform(xs[train_idx])
         X_test_scaled = scaler.transform(xs[test_idx])
-        clf = SVC(kernel='rbf', probability=True)
+        clf = SVC(kernel=kernel, probability=True, random_state=random_state)
         if not is_binary:
             clf.fit(X_train_scaled, np.argmax(ys[train_idx], axis=1))
         else:
@@ -65,7 +65,6 @@ def train_multiclass_v2(xs, ys, n_splits=5, to_print=True, random_state=0):
     stat_result = calculate_stat_dicts(results)
     if to_print:
         pretty_print_dict(stat_result)
-
 
     return stat_result
 
