@@ -48,9 +48,3 @@ def get_structural_sim_network(graph, nodes_st, k, data_path):
     g_sim = nx.from_pandas_adjacency(df_sim)
     g_sim = StellarGraph.from_networkx(g_sim)
     return g_sim
-
-
-def save_list_to_file(lst, file_path):
-    with open(file_path, 'w') as f:
-        for elt in lst:
-            f.write(f"{elt}\n")

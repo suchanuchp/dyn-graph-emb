@@ -4,7 +4,7 @@ from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 import numpy as np
 
 from dyn_graph_emb.random_walk import TemporalStructuralRandomWalk
-from dyn_graph_emb.utils import get_structural_sim_network
+from dyn_graph_emb.graph_utils import get_structural_sim_network
 
 
 class DynConnectomeEmbed:

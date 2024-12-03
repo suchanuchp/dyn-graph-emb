@@ -9,8 +9,7 @@ from stellargraph import StellarGraph
 from dyn_graph_emb.ts_model import DynConnectomeEmbed
 from dyn_graph_emb.evaluation import train_multiclass, train_multiclass_v2
 from dyn_graph_emb.tdgraphembed import TdGraphEmbed
-# python -u src/dyn_graph_emb/run_embedding.py --datadir data/prep_w50_s8_aal_batch2 --savedir data/emb_w50_s8_aal_batch2_l10_w4 -r 10 --maximum_walk_length 10 --context_window_size 4 --num_nodes 116
-
+# nohup python -u src/dyn_graph_emb/run_embedding.py --datadir data/prep_w50_s5_aal_all --savedir output/emb_w50_s5_aal_a1520_r10_l20_st1 -r 10 --maximum_walk_length 20 --context_window_size 5 --num_nodes 116 --include_same_timestep_neighbors 1 --run_baseline 0 --start 15 --end 20 > logs/nlog_emb_w50_s5_aal_a1520_r10_l20_st0.txt
 
 def main():
     parser = argparse.ArgumentParser()
@@ -124,6 +123,7 @@ def run_tdgraphembed(filtered_filenames, opt):
     graphs = []
     labels = []
     max_ts = []
+    graph_indices = []
 
     for filename in tqdm(filtered_filenames):
         filepath = os.path.join(data_dir, filename)
@@ -137,6 +137,7 @@ def run_tdgraphembed(filtered_filenames, opt):
         g, max_t = get_temporal_graphs_dict(df_graph, nodes_st)
         graphs.append(g)
         max_ts.append(max_t)
+        graph_indices.append(file_id)
 
     labels = np.array(labels)
     model = TdGraphEmbed(graphs=graphs,

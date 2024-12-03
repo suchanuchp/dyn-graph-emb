@@ -4,9 +4,11 @@ from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 from node2vec import Node2Vec
 import numpy as np
 
+from dyn_graph_emb.utils import save_list_to_file
+
 
 class TdGraphEmbed:
-    def __init__(self, graphs, labels, config):
+    def __init__(self, graphs, labels, graph_indices, config):
         self.num_walks = config["random_walks_per_node"]
         self.embedding_dim = config["embedding_dimension"]
         self.window_size = config["context_window_size"]
@@ -16,6 +18,7 @@ class TdGraphEmbed:
         self.q = 0.5
         self.graphs = graphs
         self.labels = labels
+        self.graph_indices = graph_indices
         self.n_graphs = len(self.graphs)
         self.config = config
         self.save_dir = config["savedir"]
@@ -53,6 +56,7 @@ class TdGraphEmbed:
         self.model = model
         model.save(save_path)
         np.savetxt(os.path.join(self.save_dir, 'labels.txt'), self.labels)
+        save_list_to_file(self.graph_indices, os.path.join(self.save_dir, 'graph_indices.txt'))
         print("Model Saved")
 
     # def get_embeddings(self):
