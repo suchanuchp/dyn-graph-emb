@@ -144,7 +144,7 @@ def run_tdgraphembed(filtered_filenames, labels, opt):
                          labels=labels,
                          config=opt)
     walk_sequences, max_ts = model.get_documents_from_graph()
-    model.run_doc2vec(walk_sequences)
+    model.run_doc2vec(walk_sequences, max_ts)
     emb = model.aggregate_embedding_snapshots(max_ts)
     print('----logistic tdgraphembed----')
     train_multiclass(emb, labels)
