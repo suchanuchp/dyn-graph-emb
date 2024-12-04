@@ -48,7 +48,7 @@ class TdGraphEmbed:
             max_ts.append(max_t)
 
         documents = sum(documents, [])
-        return documents
+        return documents, max_ts
 
     def run_doc2vec(self, documents, max_ts):
         model = Doc2Vec(vector_size=self.embedding_dim, window=self.window_size, workers=self.workers)# alpha=self.alpha, , min_alpha=self.alpha)
