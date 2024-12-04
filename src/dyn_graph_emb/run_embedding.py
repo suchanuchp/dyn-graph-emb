@@ -131,7 +131,6 @@ def run_tdgraphembed(filtered_filenames, labels, opt):
     nodes = np.arange(n_nodes)
     nodes_st = [str(node) for node in nodes]
     graphs = []
-    max_ts = []
 
     for filename in tqdm(filtered_filenames):
         filepath = os.path.join(data_dir, filename)
@@ -140,7 +139,6 @@ def run_tdgraphembed(filtered_filenames, labels, opt):
         df_graph.dst = df_graph.dst.astype(str)
         g, max_t = get_temporal_graphs_dict(df_graph, nodes_st)
         graphs.append(g)
-        max_ts.append(max_t)
 
     model = TdGraphEmbed(graphs=graphs,
                          labels=labels,
