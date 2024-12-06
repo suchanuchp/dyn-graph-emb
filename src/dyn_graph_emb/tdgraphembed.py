@@ -43,7 +43,7 @@ class TdGraphEmbed:
                 # walks = [[str(word) for word in walk] for walk in walks]
                 len_walks = np.mean([len(walk) for walk in walks])
                 print(f'average walk length: {len_walks}')
-                documents.append([TaggedDocument(doc, [str((gi, t))]) for doc in walks])
+                documents.append([TaggedDocument(doc, [(gi, t)]) for doc in walks])
                 max_t = t if t > max_t else max_t
             max_ts.append(max_t)
 
@@ -66,6 +66,6 @@ class TdGraphEmbed:
         n_graphs = len(self.labels)
         aggregated_emb = []
         for max_t, gi in zip(max_ts, np.arange(n_graphs)):
-            emb = np.mean([self.model.dv[str((gi, ti))] for ti in range(1, max_t + 1)], axis=0)
+            emb = np.mean([self.model.dv.get_vector((gi, ti)) for ti in range(1, max_t + 1)], axis=0)
             aggregated_emb.append(emb)
         return np.array(aggregated_emb)
