@@ -68,7 +68,7 @@ class DynConnectomeEmbed:
         self.model = model
         print("Model Saved")
         emb = self.get_embeddings()
-        np.savetxt(os.path.join(self.save_dir, 'tdgraphembed.txt'), emb)
+        np.savetxt(os.path.join(self.save_dir, 'tsembed.txt'), emb)
 
     def get_embeddings(self):
         '''
