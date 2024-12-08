@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #INPUT_DIR=="~/dyn-graph-emb/"
-FILE_PATH="/home/ninew/dyn-graph-emb/data/age_filter/age_0_10.txt" # list of files
+FILE_PATH="/home/ninew/dyn-graph-emb/data/age_filter/age_20_30.txt" # list of files
 FILE_DIR="/home/ninew/dyn-graph-emb/data/prep_w50_s5_aal_all" # directory of files
-OUTPUT_DIR="/home/ninew/dyn-graph-emb/output/dgraphlets/age_0_10"
+OUTPUT_DIR="/home/ninew/dyn-graph-emb/output/dgraphlets/age_20_30"
   # Limit to 5 parallel jobs
 #~/code/dcount ~/dyn-graph-emb/data/prep_w50_s8_aal_batch1/CMU_a_0050642_func_preproc.csv 5 3 1
 
@@ -25,7 +25,7 @@ function process_file {
 #!/bin/bash
 
 # Max number of parallel jobs
-MAX_JOBS=3
+MAX_JOBS=4
 
 # Counter for current number of parallel jobs
 count=0
