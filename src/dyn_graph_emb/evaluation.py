@@ -57,9 +57,9 @@ def train_multiclass_v2(xs, ys, n_splits=5, to_print=True, random_state=0, kerne
         else:
             clf.fit(X_train_scaled, ys[train_idx])
         rat = np.sum(ys[test_idx])/len(ys[test_idx])
-        print(f'ratio: {rat}, {1-rat}')
+        # print(f'ratio: {rat}, {1-rat}')
         result = evaluate_classifier(X_test_scaled, ys[test_idx], clf)
-        print()
+        # print()
         results.append(result)
 
     stat_result = calculate_stat_dicts(results)
@@ -124,16 +124,16 @@ def evaluate_classifier(X, Y, classifier):
     auc_micro = roc_auc_score(Y, y_scores, average='micro')
 
     accuracy = accuracy_score(y_true, y_pred)
-    print(f"Accuracy: {accuracy:.2f}")
+    # print(f"Accuracy: {accuracy:.2f}")
 
     # Calculate sensitivity (recall)
     sensitivity = recall_score(y_true, y_pred)
-    print(f"Sensitivity: {sensitivity:.2f}")
+    # print(f"Sensitivity: {sensitivity:.2f}")
 
     # Calculate specificity
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
     specificity = tn / (tn + fp)
-    print(f"Specificity: {specificity:.2f}")
+    # print(f"Specificity: {specificity:.2f}")
 
     return {
         'Average Precision Score (Macro)': average_precision_macro,
