@@ -42,7 +42,6 @@ class TdGraphEmbed:
                 walks = node2vec.walks
                 # walks = [[str(word) for word in walk] for walk in walks]
                 len_walks = np.mean([len(walk) for walk in walks])
-                print(f'average walk length: {len_walks}')
                 documents.append([TaggedDocument(doc, [(gi, t)]) for doc in walks])
                 max_t = t if t > max_t else max_t
             max_ts.append(max_t)
