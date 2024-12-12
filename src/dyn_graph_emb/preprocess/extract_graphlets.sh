@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #INPUT_DIR=="~/dyn-graph-emb/"
-FILE_PATH="/home/ninew/dyn-graph-emb/data/age_filter/age_20_30.txt" # list of files
+FILE_PATH="/home/ninew/dyn-graph-emb/data/age_filter/age_10_15.txt" # list of files
 FILE_DIR="/home/ninew/dyn-graph-emb/data/prep_w50_s5_aal_all" # directory of files
-OUTPUT_DIR="/home/ninew/dyn-graph-emb/output/dgraphlets/age_20_30"
+OUTPUT_DIR="/home/ninew/dyn-graph-emb/output/dgraphlets/age_10_15"
   # Limit to 5 parallel jobs
 #~/code/dcount ~/dyn-graph-emb/data/prep_w50_s8_aal_batch1/CMU_a_0050642_func_preproc.csv 5 3 1
 
