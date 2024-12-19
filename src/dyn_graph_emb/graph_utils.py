@@ -64,10 +64,9 @@ def read_dgdvs(file_path, total_rows=116):
 
     zeros = [0] * dim
 
-    max_index = total_rows - 1
     full_data = []
     zeros_indices = []
-    for i in range(max_index):  # TODO: check if this should be max_index or total_rows
+    for i in range(total_rows):  # TODO: check if this should be max_index or total_rows
         if i in data:
             full_data.append(data[i])
         else:
