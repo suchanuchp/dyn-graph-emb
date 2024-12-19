@@ -28,10 +28,10 @@ def keep_top_k(matrix, k):
     return result
 
 
-def get_structural_sim_network(graph, nodes_st, k, data_path):
+def get_structural_sim_network(dgraphlet_path, nodes_st, k):
     from sklearn.preprocessing import StandardScaler
 
-    dgdv = np.loadtxt(os.path.join(data_path, 'dynamic_graphlets/sorted_output_dgdv_6_4_1.txt'))
+    dgdv, zeros_indices = read_dgdvs(dgraphlet_path, total_rows=116)
     scaler = StandardScaler()
     scaled_dgdv = scaler.fit_transform(dgdv)
 
@@ -40,11 +40,40 @@ def get_structural_sim_network(graph, nodes_st, k, data_path):
     sim = euclidean_similarity_matrix(scaled_dgdv)
 
     np.fill_diagonal(sim, 0)
-    if k == -1:
-        k = int(np.mean(list(graph.node_degrees().values())))
+    sim[zeros_indices] = 0
+    sim[:, zeros_indices] = 0
+    # if k == -1:
+    #     k = int(np.mean(list(graph.node_degrees().values())))
 
     sim = keep_top_k(sim, k)
     df_sim = pd.DataFrame(sim, index=nodes_st, columns=nodes_st)
     g_sim = nx.from_pandas_adjacency(df_sim)
     g_sim = StellarGraph.from_networkx(g_sim)
     return g_sim
+
+
+def read_dgdvs(file_path, total_rows=116):
+    data = {}
+    with open(file_path, 'r') as file:
+        for line in file:
+            parts = line.split()
+            index = int(parts[0])
+            vals = [int(num) for num in parts[1:]]
+            data[index] = vals
+            dim = len(vals)
+
+    zeros = [0] * dim
+
+    max_index = total_rows - 1
+    full_data = []
+    zeros_indices = []
+    for i in range(max_index):  # TODO: check if this should be max_index or total_rows
+        if i in data:
+            full_data.append(data[i])
+        else:
+            zeros_indices.append(i)
+            full_data.append(zeros)
+
+    full_data_array = np.array(full_data)
+
+    return full_data_array, zeros_indices
