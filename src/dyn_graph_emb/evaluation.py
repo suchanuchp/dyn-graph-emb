@@ -32,7 +32,7 @@ def pretty_print_dict(d):
     print()
 
 
-def train_multiclass_v2(xs, ys, n_splits=5, to_print=True, random_state=0, kernel='linear'):
+def train_multiclass_v2(xs, ys, n_splits=10, to_print=True, random_state=0, kernel='linear'):
     is_binary = (len(ys.shape) == 1) or (ys.shape[1] == 1)
     if not is_binary:
         int_labels = np.argmax(ys, axis=1)
@@ -69,7 +69,7 @@ def train_multiclass_v2(xs, ys, n_splits=5, to_print=True, random_state=0, kerne
     return stat_result
 
 
-def train_multiclass(xs, ys, n_splits=5, to_print=True, random_state=0):
+def train_multiclass(xs, ys, n_splits=10, to_print=True, random_state=0):
     is_binary = (len(ys.shape) == 1) or (ys.shape[1] == 1)
     if not is_binary:
         int_labels = np.argmax(ys, axis=1)
