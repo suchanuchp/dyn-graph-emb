@@ -8,7 +8,7 @@ from dyn_graph_emb.graph_utils import get_structural_sim_network
 
 
 class DynConnectomeEmbed:
-    def __init__(self, graphs, labels, config):
+    def __init__(self, graphs, structural_graphs, labels, config):
         self.num_walks = config["random_walks_per_node"]
         self.embedding_dim = config["embedding_dimension"]
         self.window_size = config["context_window_size"]
@@ -18,6 +18,7 @@ class DynConnectomeEmbed:
         self.num_walks = config["random_walks_per_node"]
         self.epochs = config["epochs"]
         self.graphs = graphs
+        self.structural_graphs = structural_graphs
         self.labels = labels
         self.n_graphs = len(self.graphs)
         self.nodes_st = None
@@ -37,8 +38,7 @@ class DynConnectomeEmbed:
         documents = []
         for gi, graph in tqdm(enumerate(self.graphs)):
             if self.alpha > 0:
-                structural_graph = get_structural_sim_network(graph, nodes_st=self.nodes_st, k=self.k,
-                                                              data_path='')  # TODO: change data path
+                structural_graph = self.structural_graphs[gi]
             else:
                 structural_graph = None
             cross_temporal_rw = TemporalStructuralRandomWalk(graph, structural_graph=structural_graph)
