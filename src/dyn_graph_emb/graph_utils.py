@@ -37,6 +37,8 @@ def get_structural_sim_network(dgraphlet_path, nodes_st, k):
 
     pca = PCA(n_components=0.9, random_state=0)
     scaled_dgdv = pca.fit_transform(scaled_dgdv)
+    print(f'pre-pca dim: {dgdv.shape}')
+    print(f'pca dim: {scaled_dgdv.shape}')
     sim = euclidean_similarity_matrix(scaled_dgdv)
 
     np.fill_diagonal(sim, 0)
