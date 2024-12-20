@@ -132,8 +132,10 @@ def run_tswalk(filtered_filenames, labels, opt):
     emb = model.get_embeddings()
     print('------ts model logistic---------')
     train_multiclass(emb, labels)
-    print('------ts model svm---------')
-    train_multiclass_v2(emb, labels)
+    print('------ts model svm: linear---------')
+    train_multiclass_v2(emb, labels, kernel='linear')
+    print('------ts model svm: rbf---------')
+    train_multiclass_v2(emb, labels, kernel='rbf')
 
 
 def run_tdgraphembed(filtered_filenames, labels, opt):
@@ -159,8 +161,10 @@ def run_tdgraphembed(filtered_filenames, labels, opt):
     emb = model.aggregate_embedding_snapshots(max_ts)
     print('----logistic tdgraphembed----')
     train_multiclass(emb, labels)
-    print('----svm tdgraphembed----')
-    train_multiclass_v2(emb, labels)
+    print('----svm tdgraphembed: linear----')
+    train_multiclass_v2(emb, labels, kernel='linear')
+    print('----svm tdgraphembed: rbf----')
+    train_multiclass_v2(emb, labels, kernel='rbf')
 
 
 def get_temporal_graphs_dict(df, nodes_st):
