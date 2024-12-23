@@ -104,6 +104,7 @@ def run_tswalk(filtered_filenames, labels, opt):
     dgraphlet_graphs = []
     dgdvs = []
     counts = 0
+    counts_20 = 0
     for filename in tqdm(filtered_filenames):
         filepath = os.path.join(data_dir, filename)
         df_graph = pd.read_csv(filepath, index_col=False, names=['src', 'dst', 't'])
@@ -111,6 +112,8 @@ def run_tswalk(filtered_filenames, labels, opt):
         df_graph.dst = df_graph.dst.astype(str)
         if df_graph.t.max() < 10:
             counts += 1
+        if df_graph.t.max() < 20:
+            counts_20 += 1
         dynamic_graph = StellarGraph(
             nodes=pd.DataFrame(index=nodes),
             edges=df_graph,
@@ -120,7 +123,10 @@ def run_tswalk(filtered_filenames, labels, opt):
         )
 
         graphs.append(dynamic_graph)
-    print(f'counts: {counts}')
+    print(f'total: {len(labels)}')
+    print(f'counts < 10: {counts}')
+    print(f'counts < 20: {counts_20}')
+
 
     #     if opt['alpha'] != 0:
     #         file_id = filename[:filename.find('_func_preproc.csv')]
