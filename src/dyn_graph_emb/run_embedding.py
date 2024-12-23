@@ -10,7 +10,7 @@ from dyn_graph_emb.ts_model import DynConnectomeEmbed
 from dyn_graph_emb.evaluation import train_multiclass, train_multiclass_v2
 from dyn_graph_emb.tdgraphembed import TdGraphEmbed
 from dyn_graph_emb.utils import save_list_to_file
-from dyn_graph_emb.graph_utils import get_structural_sim_network
+from dyn_graph_emb.graph_utils import get_structural_sim_network, read_dgdvs
 # nohup python -u src/dyn_graph_emb/run_embedding.py --datadir data/prep_w50_s5_aal_all --savedir output/embeddings/emb_b0_ts1_a010_r100_l20_w5 -r 100 -l 20 -w 5 --num_nodes 116 --include_same_timestep_neighbors 1 --run_baseline 0 --start 0 --end 10 > logs/emb_b0_ts1_a010_r100_l20_w5.txt
 # emb_b1_ts1_a1520_r10_l20_w5.txt
 # nohup python -u src/dyn_graph_emb/run_embedding.py --datadir data/prep_w50_s5_aal_all --savedir output/embeddings/emb_b1_a1015_r20_l20_w5 -r 20 -l 20 -w 5 --num_nodes 116 --include_same_timestep_neighbors 0 --run_baseline 1 --run_tswalk 0 --start 0 --end 10 > logs/emb_b1_a1015_r20_l20_w5.txt &
@@ -102,11 +102,15 @@ def run_tswalk(filtered_filenames, labels, opt):
     nodes = [str(node) for node in nodes]
     graphs = []
     dgraphlet_graphs = []
+    dgdvs = []
+    counts = 0
     for filename in tqdm(filtered_filenames):
         filepath = os.path.join(data_dir, filename)
         df_graph = pd.read_csv(filepath, index_col=False, names=['src', 'dst', 't'])
         df_graph.src = df_graph.src.astype(str)
         df_graph.dst = df_graph.dst.astype(str)
+        if df_graph.t.max() < 10:
+            counts += 1
         dynamic_graph = StellarGraph(
             nodes=pd.DataFrame(index=nodes),
             edges=df_graph,
@@ -116,12 +120,16 @@ def run_tswalk(filtered_filenames, labels, opt):
         )
 
         graphs.append(dynamic_graph)
+    print(f'counts: {counts}')
 
-        if opt['alpha'] != 0:
-            file_id = filename[:filename.find('_func_preproc.csv')]
-            dgdv_path = os.path.join(dgraphlet_path, f'{file_id}_dgdv_5_3_1.txt')  # TODO: check this
-            dgraphlet_sim_graph = get_structural_sim_network(dgraphlet_path=dgdv_path, nodes_st=nodes, k=k)
-            dgraphlet_graphs.append(dgraphlet_sim_graph)
+    #     if opt['alpha'] != 0:
+    #         file_id = filename[:filename.find('_func_preproc.csv')]
+    #         dgdv_path = os.path.join(dgraphlet_path, f'{file_id}_dgdv_5_3_1.txt')  # TODO: check this
+    #         dgdv, _ = read_dgdvs(dgdv_path, total_rows=n_nodes)
+    #         dgdvs.append(dgdv)
+    #
+    # if opt['alpha'] != 0:
+
 
     model = DynConnectomeEmbed(graphs=graphs,
                                structural_graphs=dgraphlet_graphs if opt['alpha'] != 0 else None,
