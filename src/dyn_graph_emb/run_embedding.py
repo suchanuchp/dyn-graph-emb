@@ -36,6 +36,7 @@ def main():
     parser.add_argument('--run_baseline', type=int, default=1)
     parser.add_argument('--run_tswalk', type=int, default=1)
     parser.add_argument('--workers', type=int, default=1)
+    parser.add_argument('--tmin', type=int, default=20)
     parser.add_argument('--include_same_timestep_neighbors', type=int, default=0)
 
     args = parser.parse_args()
@@ -47,6 +48,7 @@ def main():
     n_nodes = opt['num_nodes']
     start = opt['start']
     end = opt['end']
+    tmin = opt['tmin']
 
     if not os.path.exists(data_dir):
         raise FileExistsError("data dir does not exist")
@@ -75,11 +77,14 @@ def main():
     for filename in filenames:
         file_id = filename[:filename.find('_func_preproc.csv')]
         if file_id in poi_files:
-            filtered_filenames.append(filename)
-            group = df_info[df_info.FILE_ID == file_id].iloc[0].DX_GROUP
-            label = 0 if group == 2 else 1  # 0: control, 1: autism
-            labels.append(label)
-            graph_indices.append(file_id)
+            filepath = os.path.join(data_dir, filename)
+            df_graph = pd.read_csv(filepath, index_col=False, names=['src', 'dst', 't'])
+            if df_graph.t.max() >= tmin:
+                filtered_filenames.append(filename)
+                group = df_info[df_info.FILE_ID == file_id].iloc[0].DX_GROUP
+                label = 0 if group == 2 else 1  # 0: control, 1: autism
+                labels.append(label)
+                graph_indices.append(file_id)
 
     labels = np.array(labels)
     print(f'------- filtered files: {len(filtered_filenames)}')
@@ -103,17 +108,11 @@ def run_tswalk(filtered_filenames, labels, opt):
     graphs = []
     dgraphlet_graphs = []
     dgdvs = []
-    counts = 0
-    counts_20 = 0
     for filename in tqdm(filtered_filenames):
         filepath = os.path.join(data_dir, filename)
         df_graph = pd.read_csv(filepath, index_col=False, names=['src', 'dst', 't'])
         df_graph.src = df_graph.src.astype(str)
         df_graph.dst = df_graph.dst.astype(str)
-        if df_graph.t.max() < 10:
-            counts += 1
-        if df_graph.t.max() < 20:
-            counts_20 += 1
         dynamic_graph = StellarGraph(
             nodes=pd.DataFrame(index=nodes),
             edges=df_graph,
@@ -123,9 +122,6 @@ def run_tswalk(filtered_filenames, labels, opt):
         )
 
         graphs.append(dynamic_graph)
-    print(f'total: {len(labels)}')
-    print(f'counts < 10: {counts}')
-    print(f'counts < 20: {counts_20}')
 
 
     #     if opt['alpha'] != 0:
@@ -144,6 +140,7 @@ def run_tswalk(filtered_filenames, labels, opt):
     walk_sequences = model.get_random_walk_sequences()
     model.run_doc2vec(walk_sequences)
     emb = model.get_embeddings()
+    print(f"chance: {sum(labels)/len(labels)}")
     print('------ts model logistic---------')
     train_multiclass(emb, labels)
     print('------ts model svm: linear---------')
