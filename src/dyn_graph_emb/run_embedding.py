@@ -36,7 +36,7 @@ def main():
     parser.add_argument('--run_baseline', type=int, default=1)
     parser.add_argument('--run_tswalk', type=int, default=1)
     parser.add_argument('--workers', type=int, default=1)
-    parser.add_argument('--tmin', type=int, default=20)
+    parser.add_argument('--tmin', type=int, default=0)
     parser.add_argument('--include_same_timestep_neighbors', type=int, default=0)
 
     args = parser.parse_args()
