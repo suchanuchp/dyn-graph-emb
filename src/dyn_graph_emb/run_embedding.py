@@ -38,6 +38,9 @@ def main():
     parser.add_argument('--workers', type=int, default=1)
     parser.add_argument('--tmin', type=int, default=0)
     parser.add_argument('--include_same_timestep_neighbors', type=int, default=0)
+    parser.add_argument('--dm_mean', type=int, default=0)  # 0 : sum, 1: mean
+    parser.add_argument('--dm_concat', type=int, default=0)  # 1: concat, 0: mean/sum
+
 
     args = parser.parse_args()
     opt = vars(args)
