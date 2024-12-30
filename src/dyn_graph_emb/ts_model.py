@@ -62,7 +62,7 @@ class DynConnectomeEmbed:
     def run_doc2vec(self, documents):
         model = Doc2Vec(vector_size=self.embedding_dim, window=self.window_size,
                         epochs=self.epochs, workers=self.workers,
-                        dm_mean=self.config['dm_mean'], dm_concat=self.config['dm_concat'])
+                        dm_mean=self.config['dm_mean'], dm_concat=self.config['dm_concat'], dm=1)
         model.build_vocab(documents)
         model.train(documents, total_examples=model.corpus_count, epochs=model.epochs)
         save_path = os.path.join(self.save_dir, 'model.model')
