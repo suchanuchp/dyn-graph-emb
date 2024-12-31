@@ -52,6 +52,7 @@ class DynConnectomeEmbed:
                 include_same_timestep_neighbors=self.include_same_timestep_neighbors,
             )
             len_walks = np.mean([len(walk) for walk in cross_walks])
+            cross_walks = [[str(node) for node in walk] for walk in cross_walks]
             print(f'average walk length: {len_walks}')
             documents.append([TaggedDocument(doc, [gi]) for doc in cross_walks])
 
