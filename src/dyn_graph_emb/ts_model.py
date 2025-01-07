@@ -21,6 +21,7 @@ class DynConnectomeEmbed:
         self.structural_graphs = structural_graphs
         self.labels = labels
         self.n_graphs = len(self.graphs)
+        self.n_nodes = config['num_nodes']
         self.nodes_st = None
         self.config = config
         self.save_dir = config["savedir"]
@@ -42,8 +43,9 @@ class DynConnectomeEmbed:
             else:
                 structural_graph = None
             cross_temporal_rw = TemporalStructuralRandomWalk(graph, structural_graph=structural_graph)
+            num_cw = len(self.n_nodes) * self.num_walks * (self.walk_length - self.window_size + 1)
             cross_walks = cross_temporal_rw.run(
-                num_cw=self.num_walks,
+                num_cw=num_cw,
                 cw_size=self.window_size,
                 max_walk_length=self.walk_length,
                 walk_bias="exponential",
