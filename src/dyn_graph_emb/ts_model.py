@@ -43,7 +43,7 @@ class DynConnectomeEmbed:
             else:
                 structural_graph = None
             cross_temporal_rw = TemporalStructuralRandomWalk(graph, structural_graph=structural_graph)
-            num_cw = len(self.n_nodes) * self.num_walks * (self.walk_length - self.window_size + 1)
+            num_cw = self.n_nodes * self.num_walks * (self.walk_length - self.window_size + 1)
             cross_walks = cross_temporal_rw.run(
                 num_cw=num_cw,
                 cw_size=self.window_size,
